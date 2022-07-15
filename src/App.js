@@ -1,123 +1,130 @@
-import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import Header from './components/Header'
-import Footer from './components/Footer'
-import Tasks from './components/Tasks'
-import AddTask from './components/AddTask'
-import About from './components/About'
+import Header from "./components/Header";
+//import component header
 
-const App = () => {
-  const [showAddTask, setShowAddTask] = useState(false)
-  const [tasks, setTasks] = useState([])
+import Tasks from "./components/Tasks";
+//import component Tasks, so it can be used in this file.
+
+import AddTask from "./components/AddTask";
+//import component AddTask
+
+import { useState, useEffect } from "react";
+//import useState, so we can set state and pass it to the components ??
+
+function App() {
+  const [showAddForm, setShowAddForm ] = useState(false)
+  const [tasks, updateTasks] = useState([])
+  //State a new state variety cold tasks, and we will use function updateTasks to update it.
+  //use useState to set a initial value of tasks
+  //const [count, setCount] = useState(0);
+    
 
   useEffect(() => {
-    const getTasks = async () => {
+    const getTasks = async() => {
       const tasksFromServer = await fetchTasks()
-      setTasks(tasksFromServer)
+      updateTasks(tasksFromServer)
     }
-
     getTasks()
-  }, [])
+  },[])
 
-  // Fetch Tasks
-  const fetchTasks = async () => {
-    const res = await fetch('http://localhost:5000/tasks')
+  //fetch Tasks
+  const fetchTasks = async () =>{
+    const res = await fetch('http://localhost:4000/tasks')
     const data = await res.json()
-
+    
+    // console.log(data)
     return data
-  }
+  } 
 
-  // Fetch Task
-  const fetchTask = async (id) => {
-    const res = await fetch(`http://localhost:5000/tasks/${id}`)
+
+  const fetchTask = async (id) =>{
+    const res = await fetch(`http://localhost:4000/tasks/${id}`)
     const data = await res.json()
-
+    
+    // console.log(data)
     return data
-  }
+  } 
 
-  // Add Task
-  const addTask = async (task) => {
-    const res = await fetch('http://localhost:5000/tasks', {
+
+  //addTask to state
+  const addTask = async(task)=>{
+    const res = await fetch('http://localhost:4000/tasks',{
       method: 'POST',
       headers: {
         'Content-type': 'application/json',
-      },
+      } ,
       body: JSON.stringify(task),
     })
+    
 
     const data = await res.json()
-
-    setTasks([...tasks, data])
-
-    // const id = Math.floor(Math.random() * 10000) + 1
-    // const newTask = { id, ...task }
-    // setTasks([...tasks, newTask])
+    updateTasks([...tasks, data])
+    //assign ID is not needed with JSON-server
+      // const id = Math.floor(Math.random() * 100000)+1
+      // const newTask = {id, ...task}
+      // updateTasks([...tasks,newTask])
   }
 
-  // Delete Task
-  const deleteTask = async (id) => {
-    const res = await fetch(`http://localhost:5000/tasks/${id}`, {
+  //delete task
+  const deleteTask = async(id) => {
+    await fetch(`http://localhost:4000/tasks/${id}`, {
       method: 'DELETE',
-    })
-    //We should control the response status to decide if we will change the state or not.
-    res.status === 200
-      ? setTasks(tasks.filter((task) => task.id !== id))
-      : alert('Error Deleting This Task')
+    })    
+    
+    updateTasks(tasks.filter((task) => task.id !== id))
+
+    //use updaTasks set in hook to delete specific task with id
+    // Create a new list of task in tasks wich is not using the id we want
   }
 
-  // Toggle Reminder
   const toggleReminder = async (id) => {
     const taskToToggle = await fetchTask(id)
-    const updTask = { ...taskToToggle, reminder: !taskToToggle.reminder }
+    const updTask = {...taskToToggle, reminder: !taskToToggle.reminder}
 
-    const res = await fetch(`http://localhost:5000/tasks/${id}`, {
+    const res = await fetch(`http://localhost:4000/tasks/${id}`,{
       method: 'PUT',
-      headers: {
-        'Content-type': 'application/json',
+      headers:{
+        'Content-type': 'application/json'
       },
-      body: JSON.stringify(updTask),
+      body: JSON.stringify(updTask)
     })
 
     const data = await res.json()
 
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, reminder: data.reminder } : task
+    updateTasks(
+      tasks.map((task)=>
+        task.id === id ? {...task, reminder: data.reminder} : task
+        //map through all the task in tasks, if the task id equals to the id passed in, 
       )
     )
   }
 
+  const toggleAddForm = () => {
+    setShowAddForm(!showAddForm)
+  }
+  
   return (
-    <Router>
-      <div className='container'>
-        <Header
-          onAdd={() => setShowAddTask(!showAddTask)}
-          showAdd={showAddTask}
+    <div className="container">
+      <Header toggleAddForm={toggleAddForm} showAdd={showAddForm}/>
+      {showAddForm && <AddTask onAdd={addTask}/>}
+      {/* send addTask into component */}
+
+      {/* tasks won't always be there, so set a condition for task */}
+      {tasks.length > 0 ? (
+        // if there are tasks
+        <Tasks 
+          tasks={tasks} 
+          //pass state taks to tasks component
+          onDelete={deleteTask}
+          //pass ondelete action into task inside tasks
+          onToggle={toggleReminder}
+          //pas onToggle action into task inside tasks
         />
-        <Routes>
-          <Route
-            path='/'
-            element={
-              <>
-                {showAddTask && <AddTask onAdd={addTask} />}
-                {tasks.length > 0 ? (
-                  <Tasks
-                    tasks={tasks}
-                    onDelete={deleteTask}
-                    onToggle={toggleReminder}
-                  />
-                ) : (
-                  'No Tasks To Show'
-                )}
-              </>
-            }
-          />
-          <Route path='/about' element={<About />} />
-        </Routes>
-        <Footer />
-      </div>
-    </Router>
-  )
+      ):(
+       // if there are no tasks
+        "Tasks cleared!"
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;

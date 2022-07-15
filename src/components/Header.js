@@ -1,36 +1,31 @@
-import PropTypes from 'prop-types'
-import { useLocation } from 'react-router-dom'
-import Button from './Button'
+import PropTypes from "prop-types"
+//import proptypes so we can declare proptypes later
+import Button from "./Button"
+//import component Button cuz it's used in this component.
 
-const Header = ({ title, onAdd, showAdd }) => {
-  const location = useLocation()
+const Header = ({title, toggleAddForm, showAdd}) => {
+    //declare the name of the component and the property it's going to take in
 
   return (
+    //return header render detail when the component is called in app.js
     <header className='header'>
-      <h1>{title}</h1>
-      {location.pathname === '/' && (
-        <Button
-          color={showAdd ? 'red' : 'green'}
-          text={showAdd ? 'Close' : 'Add'}
-          onClick={onAdd}
-        />
-      )}
+        {/* declare className so it can catch the css in index.css  */}
+        <h1>{title}</h1>
+        {/* take in title variable */}
+        <Button color={showAdd ? 'red' : 'green'} text={showAdd ? 'Close' : 'Add'} onClick={toggleAddForm}/>
+        {/* set color, text and onClick function for the Button in Header */}
     </header>
   )
 }
 
 Header.defaultProps = {
-  title: 'Task Tracker',
+    title: 'Task Tracker',
+    //Same, set default props for the props in Header
 }
 
 Header.propTypes = {
-  title: PropTypes.string.isRequired,
+    title: PropTypes.string,
+    //Same, set default propTypes for the props in Header
 }
-
-// CSS in JS
-// const headingStyle = {
-//   color: 'red',
-//   backgroundColor: 'black',
-// }
-
 export default Header
+//export the component
